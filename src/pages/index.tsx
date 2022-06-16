@@ -2,11 +2,10 @@ import { useState, FormEvent } from "react";
 import Head from "next/head";
 import type { NextPage, GetServerSideProps } from "next";
 
-import { parseCookies } from "nookies";
-
 import { useAuthContext } from "context/AuthContext";
 
 import styles from "../styles/Home.module.css";
+import { WithSSRGuest } from "utils/withSSRGuest";
 
 const Home: NextPage = () => {
   const [email, setEmail] = useState("");
@@ -52,19 +51,12 @@ const Home: NextPage = () => {
 
 export default Home;
 
-export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const { "nextauth.token": token } = parseCookies(ctx);
-
-  if (token) {
-    return {
-      redirect: {
-        destination: "/dashboard",
-        permanent: false,
-      },
-    };
-  }
-
+export const getServerSideProps: GetServerSideProps = WithSSRGuest<{
+  users: string[];
+}>(async (ctx) => {
   return {
-    props: {},
+    props: {
+      users: ["teste"],
+    },
   };
-};
+});

@@ -8,7 +8,8 @@ import {
 import Router from "next/router";
 import { setCookie, parseCookies } from "nookies";
 
-import { api, singOut } from "services/api";
+import { singOut } from "services/api";
+import { api } from "services/apiCliente";
 
 type Credentials = {
   email: string;
@@ -87,12 +88,9 @@ export function AuthContextProvider({ children }: AuthContextProvider) {
 
       //@ts-ignore
       api.defaults.headers["Authorization"] = `Bearer ${token}`;
-
       Router.push("/dashboard");
     } catch (erro) {
       singOut();
-
-      Router.push("/");
     }
   }
 
