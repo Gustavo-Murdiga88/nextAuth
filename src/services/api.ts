@@ -1,4 +1,5 @@
 import axios, { AxiosError } from "axios";
+import { singOut } from "context/AuthContext";
 import Router from "next/router";
 import { parseCookies, setCookie, destroyCookie } from "nookies";
 import { AuthErrorAuthentication } from "./Errors/AuthErrorAuthentication";
@@ -10,13 +11,6 @@ type FaliedRequest = {
 
 let isRefreshing = false;
 let failedRequestQueue: Array<FaliedRequest> = [];
-
-export function singOut() {
-  destroyCookie(undefined, "nextauth.token");
-  destroyCookie(undefined, "nextauth.refreshtoken");
-
-  Router.push("/");
-}
 
 export function SetupApi(ctx: any = undefined) {
   let cookies = parseCookies(ctx);

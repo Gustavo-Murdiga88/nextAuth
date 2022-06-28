@@ -6,9 +6,8 @@ import {
   useState,
 } from "react";
 import Router from "next/router";
-import { setCookie, parseCookies } from "nookies";
+import { setCookie, parseCookies, destroyCookie } from "nookies";
 
-import { singOut } from "services/api";
 import { api } from "services/apiCliente";
 
 type Credentials = {
@@ -25,12 +24,23 @@ type User = {
 type AuthContext = {
   singIn(credentials: Credentials): Promise<void>;
   isAuthenticated: boolean;
-  user: User | undefined;
+  user: User;
 };
 
 type AuthContextProvider = {
   children: ReactNode;
 };
+
+let authChannel: BroadcastChannel;
+
+export function singOut() {
+  destroyCookie(undefined, "nextauth.token");
+  destroyCookie(undefined, "nextauth.refreshtoken");
+
+  authChannel?.postMessage("singOut");
+
+  Router.push("/");
+}
 
 export const AuthContext = createContext({} as AuthContext);
 
@@ -58,6 +68,20 @@ export function AuthContextProvider({ children }: AuthContextProvider) {
           Router.push("/");
         });
     }
+  }, []);
+
+  useEffect(() => {
+    authChannel = new BroadcastChannel("auth");
+
+    authChannel.onmessage = (teste) => {
+      if (teste.data === "singOut") {
+        singOut();
+      }
+
+      if (teste.data === "singIn") {
+        Router.push("/dashboard");
+      }
+    };
   }, []);
 
   async function singIn({ email, senha }: Credentials) {
@@ -88,6 +112,7 @@ export function AuthContextProvider({ children }: AuthContextProvider) {
 
       //@ts-ignore
       api.defaults.headers["Authorization"] = `Bearer ${token}`;
+      authChannel.postMessage("singIn");
       Router.push("/dashboard");
     } catch (erro) {
       singOut();
